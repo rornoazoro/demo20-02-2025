@@ -1,25 +1,33 @@
-name: Deploy to EC2
+name: Deploy to AWS EC2
 
 on:
   push:
     branches:
-      - main  # Change this to your deployment branch
+      - main  # Runs only when code is pushed to main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v3
 
-      - name: Deploy to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@3.111.35.224 << 'EOF'
-            cd /var/www/html/harshkhandelwal.online
-            git pull origin main
-            npm install  # Run this if your app requires dependencies
-            pm2 restart all  # If you're using PM2 for process management
-          EOF
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+    - name: Setup SSH Key and Known Hosts
+      run: |
+        echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key
+        chmod 600 private_key
+        ssh-keyscan -H 3.111.35.224 >> ~/.ssh/known_hosts
+
+    - name: Deploy Code to AWS EC2
+      run: |
+        ssh -i private_key ubuntu@3.111.35.224 << 'EOF'
+        cd /var/www/html/harshkhandelwal.online
+        git pull origin main
+        composer install --no-dev --prefer-dist
+        php artisan migrate --force
+        php artisan config:clear
+        php artisan cache:clear
+        php artisan queue:restart
+        exit
+        EOF
