@@ -17,7 +17,7 @@ jobs:
       run: |
         echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key
         chmod 600 private_key
-        ssh-keyscan -H 3.111.35.224 >> ~/var/www/html/ssh/id_rsa
+        ssh-keyscan -H 3.111.35.224 >> ~/ssh/id_rsa
 
     - name: Deploy Code to AWS EC2
       run: |
