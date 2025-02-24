@@ -1,35 +1,38 @@
-name: Deploy to EC2
+name: Push-to-EC2
 
+# Trigger deployment only on push to main branch
 on:
   push:
     branches:
-      - main  # Change this to the branch you want to deploy
+      - main
 
 jobs:
   deploy:
+    name: Deploy to EC2 on master branch push
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout the files
+        uses: actions/checkout@v2
 
-     
-      - name: Setup SSH Key
-        run: |
-          mkdir -p $HOME/.ssh
-          
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 $HOME/.ssh/id_rsa
-          ssh-keyscan -H 3.110.54.3 >> ~/.ssh/known_hosts
-       
-      - name: Test SSH Connection
-        run: ssh -v -i $HOME/.ssh/id_rsa ubuntu@3.110.54.3 "echo Connected successfully"
+      - name: Deploy to Server 1
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: ${{ secrets.TARGET_DIR }}
 
-      - name: Deploy Code to EC2
-        run: |
-          ssh -i $HOME/.ssh/id_rsa ubuntu@3.110.54.3 << 'EOF'
-          cd /var/www/html  # Change to your project directory
-          git pull origin main
-          npm install  # Install dependencies if needed
-          pm2 restart all  # Restart process (for Node.js apps)
-          EOF
+      - name: Executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt-get -y update
+            sudo apt-get install -y apache2
+            sudo systemctl start apache2
+            sudo systemctl enable apache2
+            cd home
+            sudo mv * /var/www/html
