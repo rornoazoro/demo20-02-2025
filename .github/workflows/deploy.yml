@@ -13,11 +13,12 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
-    - name: Setup SSH Key and Known Hosts
+    - name: Setup SSH
       run: |
+         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key
-        chmod 600 private_key
-        ssh-keyscan -H 3.110.54.3 >> ~/ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 3.110.54.3 >> ~/.ssh/known_hosts
 
     - name: Deploy Code to AWS EC2
       run: |
