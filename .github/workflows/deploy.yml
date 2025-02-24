@@ -16,18 +16,18 @@ jobs:
      
       - name: Setup SSH Key
         run: |
-          mkdir -p ~/.ssh
+          mkdir -p $HOME/.ssh
           
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          chmod 600 $HOME/.ssh/id_rsa
           ssh-keyscan -H 3.110.54.3 >> ~/.ssh/known_hosts
        
       - name: Test SSH Connection
-        run: ssh -v -i ~/.ssh/id_rsa ubuntu@3.110.54.3 "echo Connected successfully"
+        run: ssh -v -i $HOME/.ssh/id_rsa ubuntu@3.110.54.3 "echo Connected successfully"
 
       - name: Deploy Code to EC2
         run: |
-          ssh -i ~/.ssh/id_rsa ubuntu@3.110.54.3 << 'EOF'
+          ssh -i $HOME/.ssh/id_rsa ubuntu@3.110.54.3 << 'EOF'
           cd /var/www/html  # Change to your project directory
           git pull origin main
           npm install  # Install dependencies if needed
