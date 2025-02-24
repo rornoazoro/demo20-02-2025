@@ -23,7 +23,7 @@ jobs:
 
     - name: Deploy Code to AWS EC2
       run: |
-        ssh -i private_key root@3.110.54.3 << 'EOF'
+        ssh -i "${{ secrets.EC2_SSH_PRIVATE_KEY }}" root@3.110.54.3 << 'EOF'
         cd /var/www/html/harshkhandelwal.online
         git pull origin main
         composer install --no-dev --prefer-dist
